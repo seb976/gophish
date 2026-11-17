@@ -150,6 +150,44 @@
             </div>
             <br />
 
+            <div class="row">
+                <label for="use_oauth2" class="col-sm-2 control-label form-label" data-toggle="tooltip"
+                    title="Authenticate with Microsoft 365 using OAuth2 (XOAUTH2) instead of a password. Requires an Azure AD app registration with the IMAP.AccessAsApp permission.">Use OAuth2 (Microsoft 365):</label>
+                <div class="col-md-6">
+                    <div class="checkbox checkbox-primary">
+                        <input id="use_oauth2" type="checkbox">
+                        <label for="use_oauth2"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="oauth2area" style="display: none;">
+                <div class="row">
+                    <label for="tenantid" class="col-sm-2 control-label form-label">Tenant ID:</label>
+                    <div class="col-md-6">
+                        <input type="text" id="tenantid" name="tenantid" placeholder="Azure AD Directory (tenant) ID"
+                            autocomplete="off" class="form-control" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <label for="clientid" class="col-sm-2 control-label form-label">Client ID:</label>
+                    <div class="col-md-6">
+                        <input type="text" id="clientid" name="clientid" placeholder="Application (client) ID"
+                            autocomplete="off" class="form-control" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <label for="clientsecret" class="col-sm-2 control-label form-label">Client Secret:</label>
+                    <div class="col-md-6">
+                        <input type="password" id="clientsecret" name="clientsecret" placeholder="Client secret value"
+                            autocomplete="off" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <br />
+
 
             <div class="row">
                 <label for="use_tls" class="col-sm-2 control-label form-label">Use TLS:</label>
@@ -245,5 +283,5 @@
 </div>
 {{end}} {{define "scripts"}}
 <script src="/js/dist/app/passwords.min.js"></script>
-<script src="/js/dist/app/settings.min.js"></script>
+<script src="/js/src/app/settings.js"></script>
 {{end}}
