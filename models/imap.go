@@ -20,6 +20,10 @@ type IMAP struct {
 	Port                        uint16    `json:"port,string,omitempty"`
 	Username                    string    `json:"username"`
 	Password                    string    `json:"password"`
+	OAuth2Enabled               bool      `json:"oauth2_enabled" gorm:"column:oauth2_enabled"`
+	TenantID                    string    `json:"tenant_id" gorm:"column:tenant_id"`
+	ClientID                    string    `json:"client_id" gorm:"column:client_id"`
+	ClientSecret                string    `json:"client_secret" gorm:"column:client_secret"`
 	TLS                         bool      `json:"tls"`
 	IgnoreCertErrors            bool      `json:"ignore_cert_errors"`
 	Folder                      string    `json:"folder"`
@@ -56,6 +60,10 @@ var ErrIMAPPasswordNotSpecified = errors.New("No Password specified")
 // IMAP server is invalid
 var ErrInvalidIMAPFreq = errors.New("Invalid polling frequency")
 
+// ErrIMAPOAuth2FieldsMissing is thrown when OAuth2 is enabled but the
+// Tenant ID, Client ID or Client Secret are missing
+var ErrIMAPOAuth2FieldsMissing = errors.New("OAuth2 enabled but Tenant ID, Client ID or Client Secret is missing")
+
 // TableName specifies the database tablename for Gorm to use
 func (im IMAP) TableName() string {
 	return "imap"
@@ -70,8 +78,10 @@ func (im *IMAP) Validate() error {
 		return ErrIMAPPortNotSpecified
 	case im.Username == "":
 		return ErrIMAPUsernameNotSpecified
-	case im.Password == "":
+	case !im.OAuth2Enabled && im.Password == "":
 		return ErrIMAPPasswordNotSpecified
+	case im.OAuth2Enabled && (im.TenantID == "" || im.ClientID == "" || im.ClientSecret == ""):
+		return ErrIMAPOAuth2FieldsMissing
 	}
 
 	// Set the default value for Folder
