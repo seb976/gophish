@@ -31,6 +31,10 @@ $(document).ready(function () {
         imapSettings.password = $("#imappassword").val()
         imapSettings.enabled = $('#use_imap').prop('checked')
         imapSettings.tls = $('#use_tls').prop('checked')
+        imapSettings.oauth2_enabled = $('#use_oauth2').prop('checked')
+        imapSettings.tenant_id = $("#tenantid").val()
+        imapSettings.client_id = $("#clientid").val()
+        imapSettings.client_secret = $("#clientsecret").val()
 
         //Advanced settings
         imapSettings.folder = $("#folder").val()
@@ -93,6 +97,10 @@ $(document).ready(function () {
         server.password = $("#imappassword").val()
         server.tls = $('#use_tls').prop('checked')
         server.ignore_cert_errors = $('#ignorecerterrors').prop('checked')
+        server.oauth2_enabled = $('#use_oauth2').prop('checked')
+        server.tenant_id = $("#tenantid").val()
+        server.client_id = $("#clientid").val()
+        server.client_secret = $("#clientsecret").val()
 
         //To avoid unmarshalling error in controllers/api/imap.go. It would fail gracefully, but with a generic error. 
         if (server.host == ""){
@@ -195,6 +203,17 @@ $(document).ready(function () {
         $("#advancedarea").toggle();
     })
 
+    // Show/hide the OAuth2 (Microsoft 365) fields based on the checkbox
+    $("#use_oauth2").change(function() {
+        if ($(this).prop('checked')) {
+            $("#oauth2area").show();
+            $("#imappassword").closest(".row").hide();
+        } else {
+            $("#oauth2area").hide();
+            $("#imappassword").closest(".row").show();
+        }
+    })
+
     function loadIMAPSettings(){
         api.IMAP.get()
         .success(function (imap) {
@@ -217,6 +236,17 @@ $(document).ready(function () {
                 $("#folder").val(imap.folder)
                 $("#restrictdomain").val(imap.restrict_domain)
                 $('#deletecampaign').prop('checked', imap.delete_reported_campaign_email)
+                $('#use_oauth2').prop('checked', imap.oauth2_enabled)
+                $("#tenantid").val(imap.tenant_id)
+                $("#clientid").val(imap.client_id)
+                $("#clientsecret").val(imap.client_secret)
+                if (imap.oauth2_enabled) {
+                    $("#oauth2area").show()
+                    $("#imappassword").closest(".row").hide()
+                } else {
+                    $("#oauth2area").hide()
+                    $("#imappassword").closest(".row").show()
+                }
                 $('#lastloginraw').val(imap.last_login)
                 $('#lastlogin').val(moment.utc(imap.last_login).fromNow())
                 $('#imapfreq').val(imap.imap_freq)
