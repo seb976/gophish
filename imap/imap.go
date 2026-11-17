@@ -42,6 +42,11 @@ type Mailbox struct {
 	User             string
 	Pwd              string
 	Folder           string
+	// OAuth2 (Microsoft 365) support
+	OAuth2Enabled bool
+	TenantID      string
+	ClientID      string
+	ClientSecret  string
 	// Read only mode, false (original logic) if not initialized
 	ReadOnly bool
 }
@@ -61,7 +66,11 @@ func Validate(s *models.IMAP) error {
 		IgnoreCertErrors: s.IgnoreCertErrors,
 		User:             s.Username,
 		Pwd:              s.Password,
-		Folder:           s.Folder}
+		Folder:           s.Folder,
+		OAuth2Enabled:    s.OAuth2Enabled,
+		TenantID:         s.TenantID,
+		ClientID:         s.ClientID,
+		ClientSecret:     s.ClientSecret}
 
 	imapClient, err := mailServer.newClient()
 	if err != nil {
@@ -197,9 +206,22 @@ func (mbox *Mailbox) newClient() (*client.Client, error) {
 		return imapClient, err
 	}
 
-	err = imapClient.Login(mbox.User, mbox.Pwd)
-	if err != nil {
-		return imapClient, err
+	if mbox.OAuth2Enabled {
+		// Microsoft 365 OAuth2: fetch an access token and authenticate
+		// using the XOAUTH2 SASL mechanism instead of a password.
+		token, terr := getOAuth2Token(mbox.TenantID, mbox.ClientID, mbox.ClientSecret)
+		if terr != nil {
+			return imapClient, terr
+		}
+		auth := &xoauth2Client{Username: mbox.User, Token: token}
+		if err = imapClient.Authenticate(auth); err != nil {
+			return imapClient, fmt.Errorf("XOAUTH2 authentication failed: %s", err)
+		}
+	} else {
+		err = imapClient.Login(mbox.User, mbox.Pwd)
+		if err != nil {
+			return imapClient, err
+		}
 	}
 
 	_, err = imapClient.Select(mbox.Folder, mbox.ReadOnly)
