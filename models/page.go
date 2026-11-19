@@ -18,6 +18,7 @@ type Page struct {
 	CaptureCredentials bool      `json:"capture_credentials" gorm:"column:capture_credentials"`
 	CapturePasswords   bool      `json:"capture_passwords" gorm:"column:capture_passwords"`
 	RedirectURL        string    `json:"redirect_url" gorm:"column:redirect_url"`
+	TrainingPageId     int64     `json:"training_page_id" gorm:"column:training_page_id"`
 	ModifiedDate       time.Time `json:"modified_date"`
 }
 

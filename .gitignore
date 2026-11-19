@@ -29,3 +29,24 @@ gophish_admin.key
 *.exe
 gophish.db*
 gophish
+
+# --- Données locales / configuration de déploiement (ne jamais publier) ---
+config.json.*
+!config.json.example
+*.bak
+*.bak*
+*.orig
+*.zip
+*.tar.gz
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+.env
+.env.*
+*.db
+*.sqlite*
+*.mmdb
+gophish.bak*
+*.log

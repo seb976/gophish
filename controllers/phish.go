@@ -269,6 +269,28 @@ func (ps *PhishingServer) PhishHandler(w http.ResponseWriter, r *http.Request) {
 // connection. This usually involves writing out the page HTML or redirecting
 // the user to the correct URL.
 func renderPhishResponse(w http.ResponseWriter, r *http.Request, ptx models.PhishingTemplateContext, p models.Page) {
+	// If the request was a form submit and a training/awareness page was
+	// linked to this landing page, we render that training page's HTML. This
+	// takes precedence over the redirect URL so the target is shown the
+	// awareness material right after interacting with the landing page.
+	if r.Method == "POST" {
+		if p.TrainingPageId != 0 {
+			tp, err := models.GetTrainingPage(p.TrainingPageId, p.UserId)
+			if err == nil && tp.Id != 0 {
+				html, err := models.ExecuteTemplate(tp.HTML, ptx)
+				if err != nil {
+					log.Error(err)
+					http.NotFound(w, r)
+					return
+				}
+				w.Write([]byte(html))
+				return
+			}
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}
 	// If the request was a form submit and a redirect URL was specified, we
 	// should send the user to that URL
 	if r.Method == "POST" {

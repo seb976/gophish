@@ -4,7 +4,19 @@
 	Author: Jordan Wright <github.com/jordan-wright>
 */
 var pages = []
+var trainingPages = []
 
+// populateTrainingPages fills the training page selector with the user's
+// available training pages, keeping the currently selected id if provided.
+function populateTrainingPages(selectedId) {
+    var select = $("#training_page_select")
+    select.empty()
+    select.append($("<option>").attr("value", "0").text("None"))
+    $.each(trainingPages, function (i, tp) {
+        select.append($("<option>").attr("value", tp.id).text(tp.name))
+    })
+    select.val(selectedId ? selectedId : "0")
+}
 
 // Save attempts to POST to /templates/
 function save(idx) {
@@ -15,6 +27,7 @@ function save(idx) {
     page.capture_credentials = $("#capture_credentials_checkbox").prop("checked")
     page.capture_passwords = $("#capture_passwords_checkbox").prop("checked")
     page.redirect_url = $("#redirect_url_input").val()
+    page.training_page_id = parseInt($("#training_page_select").val(), 10) || 0
     if (idx != -1) {
         page.id = pages[idx].id
         api.pageId.put(page)
@@ -43,9 +56,11 @@ function dismiss() {
     $("#html_editor").val("")
     $("#url").val("")
     $("#redirect_url_input").val("")
+    $("#training_page_select").val("0")
     $("#modal").find("input[type='checkbox']").prop("checked", false)
     $("#capture_passwords").hide()
     $("#redirect_url").hide()
+    $("#training_page").hide()
     $("#modal").modal('hide')
 }
 
@@ -120,12 +135,15 @@ function edit(idx) {
         $("#capture_credentials_checkbox").prop("checked", page.capture_credentials)
         $("#capture_passwords_checkbox").prop("checked", page.capture_passwords)
         $("#redirect_url_input").val(page.redirect_url)
+        populateTrainingPages(page.training_page_id)
         if (page.capture_credentials) {
             $("#capture_passwords").show()
             $("#redirect_url").show()
+            $("#training_page").show()
         }
     } else {
         $("#modalLabel").text("New Landing Page")
+        populateTrainingPages(0)
     }
 }
 
@@ -237,7 +255,15 @@ $(document).ready(function () {
     $("#capture_credentials_checkbox").change(function () {
         $("#capture_passwords").toggle()
         $("#redirect_url").toggle()
+        // Explicitly match the checkbox state so the training page selector
+        // can never end up inverted relative to the other options.
+        $("#training_page").toggle(this.checked)
     })
+    // Preload the list of training pages so the selector can be populated
+    api.training.get()
+        .success(function (tps) {
+            trainingPages = tps
+        })
     CKEDITOR.on('dialogDefinition', function (ev) {
         // Take the dialog name and its definition from the event data.
         var dialogName = ev.data.name;
